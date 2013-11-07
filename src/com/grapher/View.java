@@ -122,16 +122,16 @@ public class View extends ViewPart {
 		for(String genId : rfdl.getGenerations().keySet()){
 			if(!genId.toUpperCase().equals("GINF") && !genId.toUpperCase().equals("G0")){
 				Generation gen = rfdl.getGenerations().get(genId);			  
-				sb.append(gen.getId() + "=gen(" + gen.getValue() + "," + gen.getGridPoints() + ");\n");				
+				sb.append(gen.getId() + "=gen(" + gen.getValue().intValue() + "," + gen.getGridPoints() + ");\n");				
 			}
 		}
 		sb.append("\n");
 		for(String nodId: rfdl.getNodes().keySet()){
 			Node n = rfdl.getNodes().get(nodId);	
-			String genId = n.getGen().toString().substring(0, 2);
-//			if(!genId.toUpperCase().equals("GINF") && !genId.toUpperCase().equals("G0")){
+			String genId = n.getGen().toString().split("_")[0];
+		//	if(!genId.toUpperCase().equals("GI") && !genId.toUpperCase().equals("G0")){
 				sb.append(n.getId() + "=node(" + genId + ");\n");	
-//			}						
+		//	}						
 		}
 		
 		sb.append("\n");
