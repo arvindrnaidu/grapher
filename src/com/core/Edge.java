@@ -46,6 +46,14 @@ public class Edge implements Comparable<Edge> {
 		return n1;
 	}
 
+	public Size gets1() {
+		return s1;
+	}
+	
+	public Size gets2() {
+		return s2;
+	}
+	
 	public void setN1(Node n1) {
 		this.n1 = n1;
 	}

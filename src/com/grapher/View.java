@@ -74,7 +74,7 @@ public class View extends ViewPart {
 			Size endSz = new Size(Double.parseDouble(endSize), 1);
 			
 			Edge e = new Edge((Node)GenerationGraph.getInstance().getCurrentNode().getData(), n, startSz, endSz);
-			e.setId(edgeId);			
+			e.setId(edgeId);		
 			rfdl.getEdges().put(edgeId, e);
 			
 			GraphConnection conn = new GraphConnection(graph, ZestStyles.CONNECTIONS_DIRECTED, GenerationGraph.getInstance().getCurrentNode(), gn);
@@ -106,8 +106,9 @@ public class View extends ViewPart {
 		rfdl.getAllVariables().put("Ginf", Ginf);
 		
 		Node n = new Node(Ginf);
-		rfdl.getNodes().put("Ginf", n);
-		rfdl.getAllVariables().put("Ginf", n);
+		n.setId("gnode");
+		rfdl.getNodes().put("gnode", n);
+		rfdl.getAllVariables().put("gnode", n);
 				
 		GraphNode gn = new GraphNode(graph, SWT.NONE, "Ginf", n);
 		
@@ -128,17 +129,24 @@ public class View extends ViewPart {
 		for(String nodId: rfdl.getNodes().keySet()){
 			Node n = rfdl.getNodes().get(nodId);	
 			String genId = n.getGen().toString().substring(0, 2);
-			if(!genId.toUpperCase().equals("GI") && !genId.toUpperCase().equals("G0")){
+//			if(!genId.toUpperCase().equals("GINF") && !genId.toUpperCase().equals("G0")){
 				sb.append(n.getId() + "=node(" + genId + ");\n");	
-			}						
+//			}						
 		}
 		
 		sb.append("\n");
 		
 		for(String edgeId: rfdl.getEdges().keySet()){
 			Edge e = rfdl.getEdges().get(edgeId);
+			if(e.gets1().getValue().intValue() != e.gets2().getValue().intValue()){
+                sb.append(e.getId() + "=edge(" + e.getN1().getId() + "," + e.getN2().getId() + ",size(" + e.gets1().getValue().intValue() + "),size(" + e.gets2().getValue().intValue()  + "));\n");
+            }    
+            else
+            {
+                sb.append(e.getId() + "=edge(" + e.getN1().getId() + "," + e.getN2().getId() + ",size(" + e.gets1().getValue().intValue() + "));\n");
+            }			
 //			if(!e.toUpperCase().equals("GI") && !e.toUpperCase().equals("G0")){
-				sb.append(e.getId() + "=edge(" + e.getN1().getId() + "," + e.getN2().getId() + ",size(" + e.getN1().getSumOfOutGoing() + "),size(" + e.getN2().getSumOfIncoming() + "));\n");
+//				sb.append(e.getId() + "=edge(" + e.getN1().getId() + "," + e.getN2().getId() + ",size(" + e.getN1().getSumOfOutGoing() + "),size(" + e.getN2().getSumOfIncoming() + "));\n");
 //			}						
 		}
 		
