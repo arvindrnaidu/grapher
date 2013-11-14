@@ -2,6 +2,7 @@ package com.grapher;
 
 import java.util.HashMap;
 
+import org.eclipse.jface.window.Window;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.ui.part.ViewPart;
@@ -22,6 +23,8 @@ import com.core.RealFinalDemographicLanguage;
 import com.core.Size;
 import com.grapher.processor.FileProcessor;
 import com.grapher.ui.GenerationGraph;
+import com.grapher.ui.MyTitleAreaDialog;
+import com.grapher.ui.NewEdgeDialog;
 
 public class View extends ViewPart {
 	
@@ -73,11 +76,33 @@ public class View extends ViewPart {
 			Size startSz = new Size(Double.parseDouble(startSize), 1);
 			Size endSz = new Size(Double.parseDouble(endSize), 1);
 			
-			Edge e = new Edge((Node)GenerationGraph.getInstance().getCurrentNode().getData(), n, startSz, endSz);
+		//	Edge e = new Edge((Node)GenerationGraph.getInstance().getCurrentNode().getData(), n, startSz, endSz);
+			Edge e = new Edge(n,(Node)GenerationGraph.getInstance().getCurrentNode().getData(),endSz,startSz);
+
 			e.setId(edgeId);		
 			rfdl.getEdges().put(edgeId, e);
 			
 			GraphConnection conn = new GraphConnection(graph, ZestStyles.CONNECTIONS_DIRECTED, GenerationGraph.getInstance().getCurrentNode(), gn);
+			conn.setText(edgeId);
+			conn.setData(e);
+			graph.setLayoutAlgorithm(new TreeLayoutAlgorithm(), true);
+//			
+		}else{
+			GenerationGraph.getInstance().setCurrentNode(null);
+		}
+	}
+	public void addEdge(GraphNode node1, GraphNode node2, String edgeId, String startSize, String endSize){	
+		if(GenerationGraph.getInstance().getCurrentNode() != null){			
+			Size startSz = new Size(Double.parseDouble(startSize), 1);
+			Size endSz = new Size(Double.parseDouble(endSize), 1);
+			
+		//	Edge e = new Edge((Node)GenerationGraph.getInstance().getCurrentNode().getData(), n, startSz, endSz);
+			Edge e = new Edge((Node)node1.getData(),(Node)node2.getData(),endSz,startSz);
+
+			e.setId(edgeId);		
+			rfdl.getEdges().put(edgeId, e);
+			
+			GraphConnection conn = new GraphConnection(graph, ZestStyles.CONNECTIONS_DIRECTED, node1, node2);
 			conn.setText(edgeId);
 			conn.setData(e);
 			graph.setLayoutAlgorithm(new TreeLayoutAlgorithm(), true);
@@ -138,12 +163,14 @@ public class View extends ViewPart {
 		
 		for(String edgeId: rfdl.getEdges().keySet()){
 			Edge e = rfdl.getEdges().get(edgeId);
-			if(e.gets1().getValue().intValue() != e.gets2().getValue().intValue()){
-                sb.append(e.getId() + "=edge(" + e.getN1().getId() + "," + e.getN2().getId() + ",size(" + e.gets1().getValue().intValue() + "),size(" + e.gets2().getValue().intValue()  + "));\n");
-            }    
-            else
-            {
+			if(e.getN2().getGen().toString().split("_")[0].equals("Ginf")){
                 sb.append(e.getId() + "=edge(" + e.getN1().getId() + "," + e.getN2().getId() + ",size(" + e.gets1().getValue().intValue() + "));\n");
+
+            } 
+            else  if (e.gets1().getValue().intValue() != e.gets2().getValue().intValue() )
+            {
+                sb.append(e.getId() + "=edge(" + e.getN1().getId() +"," + e.getN2().getId() + ",size(" + e.gets1().getValue().intValue() + "),size(" + e.gets2().getValue().intValue()  + "));\n");
+
             }			
 //			if(!e.toUpperCase().equals("GI") && !e.toUpperCase().equals("G0")){
 //				sb.append(e.getId() + "=edge(" + e.getN1().getId() + "," + e.getN2().getId() + ",size(" + e.getN1().getSumOfOutGoing() + "),size(" + e.getN2().getSumOfIncoming() + "));\n");
@@ -163,15 +190,15 @@ public class View extends ViewPart {
 //	Important - Function - First to fire
 	public void createPartControl(Composite parent) {
 				
-		rfdl = fp.process("/Users/arvindnaidu/jws/realfinaldemographiclanguage/d1.txt");
+		rfdl = fp.process("/Users/arvindnaidu/jws/realfinaldemographiclanguage/src/d3.txt");
 		// Graph will hold all other objects
 		graph = new Graph(parent, SWT.NONE);
 				
 		GenerationGraph.getInstance().setMainView(this);	
 		
 		for(String nodeId: rfdl.getNodes().keySet()){
-			Node n = rfdl.getNodes().get(nodeId);
-			String s = nodeId + " - " + n.getGen().toString().substring(0,2).toUpperCase();
+			Node n = rfdl.getNodes().get(nodeId);			
+			String s = nodeId + " - " + n.getGen().toString().substring(0,n.getGen().toString().indexOf("_")).toUpperCase();
 			GraphNode gn = new GraphNode(graph, SWT.NONE, s, n);			
 			gn.setBackgroundColor(graph.getDisplay().getSystemColor(SWT.COLOR_GRAY));
 			myNodes.put(nodeId, gn);
@@ -187,8 +214,19 @@ public class View extends ViewPart {
 		graph.setLayoutAlgorithm(new TreeLayoutAlgorithm(), true);
 		graph.addSelectionListener(new SelectionAdapter() {
 			@Override
-			public void widgetSelected(SelectionEvent e) {				
-				if(e.item instanceof GraphNode){
+			public void widgetSelected(SelectionEvent e) {								
+				if(graph.getSelection().size() == 2){
+					try{
+					NewEdgeDialog dialog = new NewEdgeDialog(GenerationGraph.getInstance().getMainView().getSite().getWorkbenchWindow().getShell());
+			    	dialog.create();
+			    	if (dialog.open() == Window.OK) {			    		
+				      	View v = GenerationGraph.getInstance().getMainView();
+			    		v.addEdge((GraphNode)graph.getSelection().get(0), (GraphNode)graph.getSelection().get(1), dialog.getEdgeId(), dialog.getEndSize(), dialog.getStartSize());
+			    	}
+			    	}catch(Exception ex){
+			    		ex.printStackTrace();
+			    	}
+				}else if(e.item instanceof GraphNode){
 					GenerationGraph.getInstance().setCurrentNode((GraphNode)e.item);
 				}
 			}
